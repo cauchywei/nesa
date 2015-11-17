@@ -98,7 +98,7 @@ public class Nes {
         final int vromUnitSize =  8*1024;
         vrom = new int[vromCount][];
         for (int i = 0; i < vrom.length; i++) {
-            rom[i] = new int[vromUnitSize];
+            vrom[i] = new int[vromUnitSize];
             for (int j=0; j< vromUnitSize; j++) {
                 int index = offset + j;
                 if (index >= content.length){
