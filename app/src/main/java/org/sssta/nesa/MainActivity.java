@@ -1,4 +1,4 @@
-package org.sssta.nesdroid;
+package org.sssta.nesa;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;

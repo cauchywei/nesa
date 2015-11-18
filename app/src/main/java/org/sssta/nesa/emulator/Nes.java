@@ -1,8 +1,8 @@
-package org.sssta.nesdroid.emulator;
+package org.sssta.nesa.emulator;
 
 import android.support.annotation.NonNull;
 
-import org.sssta.nesdroid.utils.FileUtils;
+import org.sssta.nesa.utils.FileUtils;
 
 import java.io.IOException;
 
@@ -11,8 +11,10 @@ import java.io.IOException;
  */
 public class Nes {
 
-    public static final int VERTICAL_MIRROR = 1;
-    public static final int HORIZONAL_MIRROR = 0;
+    public static final int HORIZONTAL_MIRRORING = 0;
+    public static final int VERTICAL_MIRRORING = 1;
+    public static final int FOUR_SCREEN_MIRRORING = 2;
+
 
     private String path;
     private boolean valid;
@@ -52,7 +54,7 @@ public class Nes {
         romCount = content[4];
         vromCount = content[5];
 
-        mirrorType = (byte) (content[6] & 1) == 0?HORIZONAL_MIRROR:VERTICAL_MIRROR;
+        mirrorType = (byte) (content[6] & 1) == 0? HORIZONTAL_MIRRORING : VERTICAL_MIRRORING;
         hasBatteryRam = ((content[6] & 0b10) >> 1) == 1;
         hasTrainer = ((content[6] & 0b100) >> 2) == 1;
         hasFourScreen = ((content[6] & 0b1000) >> 3) == 1;
@@ -127,4 +129,39 @@ public class Nes {
         return content;
     }
 
+    public int getRomCount() {
+        return romCount;
+    }
+
+    public int getVromCount() {
+        return vromCount;
+    }
+
+    public int getMirrorType() {
+        return mirrorType;
+    }
+
+    public boolean isHasBatteryRam() {
+        return hasBatteryRam;
+    }
+
+    public boolean isHasTrainer() {
+        return hasTrainer;
+    }
+
+    public boolean isHasFourScreen() {
+        return hasFourScreen;
+    }
+
+    public int getRomMapperType() {
+        return romMapperType;
+    }
+
+    public int[][] getRom() {
+        return rom;
+    }
+
+    public int[][] getVrom() {
+        return vrom;
+    }
 }

@@ -1,4 +1,4 @@
-package org.sssta.nesdroid;
+package org.sssta.nesa;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
