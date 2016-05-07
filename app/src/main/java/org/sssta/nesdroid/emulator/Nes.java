@@ -1,12 +1,12 @@
-package org.sssta.nesa.emulator;
+package org.sssta.nesdroid.emulator;
 
 import android.support.annotation.NonNull;
 
-import org.sssta.nesa.utils.FileUtils;
+import org.sssta.nesdroid.utils.FileUtils;
 
 import java.io.IOException;
 
-import static org.sssta.nesa.utils.ByteUtils.b2i;
+import static org.sssta.nesdroid.utils.ByteUtils.b2i;
 
 /**
  * Created by cauchywei on 15/11/17.

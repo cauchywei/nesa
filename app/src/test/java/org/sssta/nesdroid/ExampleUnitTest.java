@@ -1,4 +1,4 @@
-package org.sssta.nesa;
+package org.sssta.nesdroid;
 
 import org.junit.Test;
 

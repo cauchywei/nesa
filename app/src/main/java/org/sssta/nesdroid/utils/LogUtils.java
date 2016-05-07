@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.sssta.nesa.utils;
+package org.sssta.nesdroid.utils;
 
 import android.util.Log;
 
-import org.sssta.nesa.BuildConfig;
+import org.sssta.nesdroid.BuildConfig;
 
 
 public class LogUtils {

@@ -1,4 +1,4 @@
-package org.sssta.nesa.utils;
+package org.sssta.nesdroid.utils;
 
 import java.io.File;
 import java.io.FileInputStream;

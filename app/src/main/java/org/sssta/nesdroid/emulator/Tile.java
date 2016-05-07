@@ -1,4 +1,4 @@
-package org.sssta.nesa.emulator;
+package org.sssta.nesdroid.emulator;
 
 /**
  * Created by cauchywei on 16/5/5.

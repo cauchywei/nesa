@@ -1,4 +1,4 @@
-package org.sssta.nesa.utils;
+package org.sssta.nesdroid.utils;
 
 /**
  * Created by cauchywei on 16/5/5.
