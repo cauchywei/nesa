@@ -2,7 +2,7 @@
 // Created by Cauchywei on 16/5/7.
 //
 
-#include "ROM.h"
+#include "rom.h"
 
 ROM::ROM(const char *path){
 
