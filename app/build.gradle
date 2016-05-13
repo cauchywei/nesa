@@ -21,6 +21,13 @@ model {
         }
         ndk {
             moduleName = "nes-simulator-jni"
+            cppFlags.add("-std=c++11")
+            cppFlags.add("-fexceptions")
+            platformVersion 14
+            stl 'gnustl_shared'
+//            stl "gnustl_shared"
+//            cppFlags "-std=c++11 -fexceptions"
+//            stl "stlport_static"
         }
     }
 }

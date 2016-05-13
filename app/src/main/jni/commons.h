@@ -8,5 +8,6 @@
 #include "stdint.h"
 
 typedef uint8_t byte;
+typedef bool bit;
 
 #endif //NESDROID_COMMONS_H

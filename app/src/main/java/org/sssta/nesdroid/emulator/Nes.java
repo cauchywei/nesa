@@ -157,7 +157,7 @@ public class Nes {
             return;
         }
 
-        for (int i = 8; i < 0xf; i++) {
+        for (int i = 8; i < 0xF; i++) {
             if (content[i] != 0) {
                 return;
             }
