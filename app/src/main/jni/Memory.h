@@ -7,53 +7,93 @@
 
 #include "commons.h"
 
+namespace nesdroid {
+
+    static const byte INIT_SP = 0xFD;
+
+    class IMemory {
+    public:
+        virtual byte read(addr_t address) = 0;
+
+        virtual dbyte readDoubleByte(addr_t address) = 0;
+
+        virtual void writeDoubleByte(addr_t address, dbyte value) = 0;
+
+        virtual void write(addr_t address, byte value) = 0;
+    };
+
+    class IMapper : public IMemory {
+
+    };
+
+    const
+
+    class CpuMemory : public IMemory {
+
+    public:
+
+        friend class Cpu;
+
+        CpuMemory() {
+            ram = new byte[0x2000];
+        }
 
 
-class IMemory {
-public:
-    virtual byte read(addr_t address) = 0;
-    virtual dbyte readDoubleByte(addr_t address) = 0;
-    virtual void writeDoubleByte(addr_t address,dbyte value) = 0;
-    virtual void write(addr_t address, byte value) = 0;
-};
+        virtual ~CpuMemory() {
+            delete ram;
+            delete mapper;
+        }
 
-class IMapper : public IMemory {
+        virtual byte read(addr_t address) override;
 
-};
+        virtual void write(addr_t address, byte value) override;
 
-class CpuMemory :public IMemory{
+        virtual dbyte readDoubleByte(addr_t address) override;
 
-public:
+        virtual void writeDoubleByte(addr_t address, dbyte value) override;
 
-    CpuMemory() {
-        ram = new byte[0x2000];
-    }
+        void push(byte value);
 
+        void pushDoubleByte(dbyte value);
 
-    virtual ~CpuMemory() {
-        delete ram;
-        delete mapper;
-    }
+        byte pop();
 
-    virtual byte read(addr_t address) override;
-    virtual void write(addr_t address, byte value) override;
+        dbyte popDoubleByte();
 
+        byte getFlags();
 
-    IMapper *getMapper() const {
-        return mapper;
-    }
+        void setFlags(byte flags);
 
-    void setMapper(IMapper *mapper) {
-        CpuMemory::mapper = mapper;
-    }
+    private:
+        IMapper *mapper;
+        byte *ram;
+        ///////////Registers///////////
+        byte ACC;
 
-private:
-    IMapper* mapper;
-    byte* ram;
-public:
-    virtual dbyte readDoubleByte(addr_t address);
+        byte X;
+        byte Y;
 
-    virtual void writeDoubleByte(addr_t address, dbyte value);
-};
+        //Stack Pointer, 8bit, it decrease when push
+        //Stack at memory locations $0100-$01FF
+        byte SP = INIT_SP;
 
+        //Program Counter, 16bit, point next instruction address
+        addr_t PC;
+
+        //Processor Status
+        // 7 6 5 4 3 2 1 0
+        // N V   B D I Z C
+        bit CF; //Carry Flag
+        bit ZF; //Zero Flag
+        bit IF; //Interrupt Disable
+        bit DF; //Decimal Mode
+        bit BF; //Break Command
+        //  --; //Empty
+        bit VF; //Overflow Flag
+        bit NF; //Negative Flag
+    public:
+
+        void reset();
+    };
+}
 #endif //NESDROID_MEMERY_H
