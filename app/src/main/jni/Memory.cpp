@@ -102,11 +102,11 @@ namespace nesdroid {
     }
 
 
-    byte CpuMemory::getFlags() {
+    byte CpuMemory::getProcessorStatus() {
         return (byte) (CF << 7 || ZF << 6 || IF << 5 || DF << 4 || BF << 3 || VF << 1 || NF);
     }
 
-    void CpuMemory::setFlags(byte flags) {
+    void CpuMemory::setProcessorStatus(byte flags) {
         CF = flags >> 7;
         ZF = flags >> 6;
         IF = flags >> 5;
@@ -118,7 +118,7 @@ namespace nesdroid {
 
 
     void CpuMemory::push(byte value) {
-        ram[SP--] = value;
+        ram[SP-- | STACK_BASE] = value;
     }
 
     void CpuMemory::pushDoubleByte(dbyte value) {
@@ -127,7 +127,7 @@ namespace nesdroid {
     }
 
     byte CpuMemory::pop() {
-        return ram[++SP];
+        return ram[++SP | STACK_BASE];
     }
 
     dbyte CpuMemory::popDoubleByte() {
@@ -137,7 +137,35 @@ namespace nesdroid {
     }
 
     void CpuMemory::reset() {
+
+    }
+
+    void CpuMemory::onResetInterrupt() {
         PC = readDoubleByte(0xFFFC);
-        //TODO SP = INIT_SP;
+    }
+
+    //IRQ
+    void CpuMemory::onMaskableInterrupt() {
+        pushDoubleByte(PC);
+        push(getProcessorStatus());
+        PC = readDoubleByte(0xFFFE);
+        IF = 1;
+    }
+
+    void CpuMemory::onNonMaskableInterrupt() {
+        pushDoubleByte(PC);
+        push(getProcessorStatus());
+        PC = readDoubleByte(0xFFFA);
+        IF = 1;
+    }
+
+    // readDoubleByteBugly emulates a 6502 bug that caused the low byte to wrap without
+    // incrementing the high byte
+    dbyte CpuMemory::readDoubleByteBugly(addr_t address) {
+        addr_t a = address;
+        addr_t b = (addr_t) ((address & 0xFF00) | (((byte) a) + 1));
+        byte low = read(a);
+        byte high = read(b);
+        return high << 8 | low;
     }
 }

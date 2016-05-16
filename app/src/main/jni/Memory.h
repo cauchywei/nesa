@@ -9,7 +9,8 @@
 
 namespace nesdroid {
 
-    static const byte INIT_SP = 0xFD;
+    static const byte INIT_SP = 0xFF;
+    static const addr_t STACK_BASE = 0x100;
 
     class IMemory {
     public:
@@ -60,9 +61,9 @@ namespace nesdroid {
 
         dbyte popDoubleByte();
 
-        byte getFlags();
+        byte getProcessorStatus();
 
-        void setFlags(byte flags);
+        void setProcessorStatus(byte flags);
 
     private:
         IMapper *mapper;
@@ -94,6 +95,14 @@ namespace nesdroid {
     public:
 
         void reset();
+
+        void onResetInterrupt();
+
+        void onMaskableInterrupt();
+
+        void onNonMaskableInterrupt();
+
+        dbyte readDoubleByteBugly(addr_t address);
     };
 }
 #endif //NESDROID_MEMERY_H

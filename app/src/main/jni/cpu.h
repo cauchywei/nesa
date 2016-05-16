@@ -8,13 +8,15 @@
 #include "commons.h"
 #include "memory.h"
 
+
+
 namespace nesdroid {
 
 
     static const uint16_t STACK_OFFSET = 0x0100;
 
 
-    typedef void (Cpu::*opt)();
+    typedef void (Cpu::*opt)(const Context &context);
 
 
     enum AddressingMode {
@@ -39,6 +41,13 @@ namespace nesdroid {
         MASKABLE_INTERUPT = 0,
         NON_MASKABLE_INTERUPT = 1,
         RESET = 2
+    };
+
+
+    struct Context{
+        addr_t address;
+        addr_t PC;
+        AddressingMode mode;
     };
 
 
@@ -70,172 +79,172 @@ namespace nesdroid {
 
 //////////////////Instructions////////////////////////////
         //ADC	add with carry
-        void ADC();
+        void ADC(const Context&);
 
         //AND	and (with accumulator)
-        void AND();
+        void AND(const Context&);
 
         //ASL	arithmetic shift left
-        void ASL();
+        void ASL(const Context&);
 
         //BCC	branch on carry clear
-        void BCC();
+        void BCC(const Context&);
 
         //BCS	branch on carry set
-        void BCS();
+        void BCS(const Context&);
 
         //BEQ	branch on equal (zero set)
-        void BEQ();
+        void BEQ(const Context&);
 
         //BIT	bit test
-        void BIT();
+        void BIT(const Context&);
 
         //BMI	branch on minus (negative set)
-        void BMI();
+        void BMI(const Context&);
 
         //BNE	branch on not equal (zero clear)
-        void BNE();
+        void BNE(const Context&);
 
         //BPL	branch on plus (negative clear)
-        void BPL();
+        void BPL(const Context&);
 
         //BRK	interrupt
-        void BRK();
+        void BRK(const Context&);
 
         //BVC	branch on overflow clear
-        void BVC();
+        void BVC(const Context&);
 
         //BVS	branch on overflow set
-        void BVS();
+        void BVS(const Context&);
 
         //CLC	clear carry
-        void CLC();
+        void CLC(const Context&);
 
         //CLD	clear decimal
-        void CLD();
+        void CLD(const Context&);
 
         //CLI	clear interrupt disable
-        void CLI();
+        void CLI(const Context&);
 
         //CLV	clear overflow
-        void CLV();
+        void CLV(const Context&);
 
         //CMP	compare (with accumulator)
-        void CMP();
+        void CMP(const Context&);
 
         //CPX	compare with X
-        void CPX();
+        void CPX(const Context&);
 
         //CPY	compare with Y
-        void CPY();
+        void CPY(const Context&);
 
         //DEC	decrement
-        void DEC();
+        void DEC(const Context&);
 
         //DEX	decrement X
-        void DEX();
+        void DEX(const Context&);
 
         //DEY	decrement Y
-        void DEY();
+        void DEY(const Context&);
 
         //EOR	exclusive or (with accumulator)
-        void EOR();
+        void EOR(const Context&);
 
         //INC	increment
-        void INC();
+        void INC(const Context&);
 
         //INX	increment X
-        void INX();
+        void INX(const Context&);
 
         //INY	increment Y
-        void INY();
+        void INY(const Context&);
 
         //JMP	jump
-        void JMP();
+        void JMP(const Context&);
 
         //JSR	jump subroutine
-        void JSR();
+        void JSR(const Context&);
 
         //LDA	load accumulator
-        void LDA();
+        void LDA(const Context&);
 
         //LDX	load X
-        void LDX();
+        void LDX(const Context&);
 
         //LDY	load Y
-        void LDY();
+        void LDY(const Context&);
 
         //LSR	logical shift right
-        void LSR();
+        void LSR(const Context&);
 
         //NOP	no operation
-        void NOP();
+        void NOP(const Context&);
 
         //ORA	or with accumulator
-        void ORA();
+        void ORA(const Context&);
 
         //PHA	push accumulator
-        void PHA();
+        void PHA(const Context&);
 
         //PHP	push processor status (SR)
-        void PHP();
+        void PHP(const Context&);
 
         //PLA	pull accumulator
-        void PLA();
+        void PLA(const Context&);
 
         //PLP	pull processor status (SR)
-        void PLP();
+        void PLP(const Context&);
 
         //ROL	rotate left
-        void ROL();
+        void ROL(const Context&);
 
         //ROR	rotate right
-        void ROR();
+        void ROR(const Context&);
 
         //RTI	return from interrupt
-        void RTI();
+        void RTI(const Context&);
 
         //RTS	return from subroutine
-        void RTS();
+        void RTS(const Context&);
 
         //SBC	subtract with carry
-        void SBC();
+        void SBC(const Context&);
 
         //SEC	set carry
-        void SEC();
+        void SEC(const Context&);
 
         //SED	set decimal
-        void SED();
+        void SED(const Context&);
 
         //SEI	set interrupt disable
-        void SEI();
+        void SEI(const Context&);
 
         //STA	store accumulator
-        void STA();
+        void STA(const Context&);
 
         //STX	store X
-        void STX();
+        void STX(const Context&);
 
         //STY	store Y
-        void STY();
+        void STY(const Context&);
 
         //TAX	transfer accumulator to X
-        void TAX();
+        void TAX(const Context&);
 
         //TAY	transfer accumulator to Y
-        void TAY();
+        void TAY(const Context&);
 
         //TSX	transfer stack pointer to X
-        void TSX();
+        void TSX(const Context&);
 
         //TXA	transfer X to accumulator
-        void TXA();
+        void TXA(const Context&);
 
         //TXS	transfer X to stack pointer
-        void TXS();
+        void TXS(const Context&);
 
         //TYA	transfer Y to accumulator
-        void TYA();
+        void TYA(const Context&);
     };
 
 
@@ -312,7 +321,7 @@ namespace nesdroid {
 
 
 //Addressing mode of instructions
-    static const byte AddressingModeTable[256] = {
+    static const AddressingMode AddressingModeTable[256] = {
             IMPLIED, INDEXED_INDIRECT, IMPLIED, INDEXED_INDIRECT, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE,
             IMPLIED, IMMEDIATE, ACCUMULATOR, IMMEDIATE, ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
             RELATIVE, INDIRECT_INDEXED, IMPLIED, INDIRECT_INDEXED, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X,
@@ -369,22 +378,22 @@ namespace nesdroid {
 
 // The number of clock cycles required to execute the instruction.
     static const byte InstructionCycleTable[256] = {
-            1, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
-            3, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
-            1, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
-            1, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 0, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 0, 3, 0, 0,
-            2, 2, 2, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
-            2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
+            7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
+            2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+            6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,
+            2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+            6, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 3, 4, 6, 6,
+            2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+            6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 5, 4, 6, 6,
+            2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+            2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,
+            2, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,
+            2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,
+            2, 5, 2, 5, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 4, 4,
+            2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
+            2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+            2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
+            2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
     };
 
 // The number of cycles used by each instruction when a page is crossed
