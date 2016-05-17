@@ -7,19 +7,37 @@
 namespace nesdroid {
 
     // pagesDiffer returns true if the two addresses reference different pages
-    static bool pagesDiffer(const addr_t &a, const addr_t &b) const {
+    static inline bool pagesDiffer(const addr_t &a, const addr_t &b) const {
         return (a & 0xFF00) != (b & 0xFF00);
     }
 
+
+    void Cpu::pcGoto(const Context &context) {
+        PC = context.address;
+        cycles++;
+
+        // addBranchCycles adds a cycle for taking a branch and adds another cycle
+        // if the branch jumps to a new page
+        if (pagesDiffer(context.PC, context.address)) {
+            cycles++;
+        }
+    }
+
+
+    void Cpu::compare(byte a, byte b) {
+        setZN(a - b);
+        CF = a > b;
+    }
+
     void Cpu::onResetInterrupt() {
-        PC = memory->readDoubleByte(0xFFFC);
+        PC = memory.readDoubleByte(0xFFFC);
         //TODO
     }
 
     void Cpu::onMaskableInterrupt() {
         pushDoubleByte(PC);
         push(getProcessorStatus());
-        PC = memory->readDoubleByte(0xFFFE);
+        PC = memory.readDoubleByte(0xFFFE);
         IF = 1;
         cycles += 7;
     }
@@ -27,7 +45,7 @@ namespace nesdroid {
     void Cpu::onNonMaskableInterrupt() {
         pushDoubleByte(PC);
         push(getProcessorStatus());
-        PC = memory->readDoubleByte(0xFFFA);
+        PC = memory.readDoubleByte(0xFFFA);
         IF = 1;
         cycles += 7;
     }
@@ -47,9 +65,13 @@ namespace nesdroid {
         NF = flags >> 1;
     }
 
+    void Cpu::setZN(const byte &value) {
+        NF = (value & 0x80) == 1;
+        ZF = value == 0;
+    }
 
     void Cpu::push(byte value) {
-        memory->write(SP-- | STACK_BASE, value);
+        memory.write(SP-- | STACK_BASE, value);
     }
 
     void Cpu::pushDoubleByte(dbyte value) {
@@ -58,7 +80,7 @@ namespace nesdroid {
     }
 
     byte Cpu::pop() {
-        return memory->read(++SP | STACK_BASE);
+        return memory.read(++SP | STACK_BASE);
     }
 
     dbyte Cpu::popDoubleByte() {
@@ -94,7 +116,7 @@ namespace nesdroid {
         interrupt = NONE;
 
 
-        byte optCode = memory->read(memory->PC);
+        byte optCode = memory.read(PC);
 
         const char *name = InstructionNameTable[optCode];
         opt const pOperation = InstructionTable[optCode];
@@ -110,30 +132,30 @@ namespace nesdroid {
 
         addr_t address = 0;
         bool pageCrossed = false;
-        addr_t nextPC = (addr_t) (memory->PC + 1);
+        addr_t nextPC = (addr_t) (PC + 1);
         switch (addressingMode) {
             case ZERO_PAGE:
-                address = memory->read(nextPC);
+                address = memory.read(nextPC);
                 break;
             case ZERO_PAGE_X:
-                address = memory->read(nextPC) + memory->X;
+                address = memory.read(nextPC) + X;
                 break;
             case ZERO_PAGE_Y:
-                address = memory->read(nextPC) + memory->Y;
+                address = memory.read(nextPC) + Y;
                 break;
             case ABSOLUTE:
-                address = memory->readDoubleByte(nextPC);
+                address = memory.readDoubleByte(nextPC);
                 break;
             case ABSOLUTE_X:
-                address = memory->readDoubleByte(nextPC) + memory->X;
-                pageCrossed = pagesDiffer(address-memory->X,address);
+                address = memory.readDoubleByte(nextPC) + X;
+                pageCrossed = pagesDiffer(address - X, address);
                 break;
             case ABSOLUTE_Y:
-                address = memory->readDoubleByte(nextPC) + memory->Y;
-                pageCrossed = pagesDiffer(address-memory->Y,address);
+                address = memory.readDoubleByte(nextPC) + Y;
+                pageCrossed = pagesDiffer(address - Y, address);
                 break;
             case INDIRECT:
-                address = memory->readDoubleByteBugly(memory->readDoubleByte(nextPC));
+                address = memory.readDoubleByteBugly(memory.readDoubleByte(nextPC));
                 break;
             case IMPLIED:
                 break;
@@ -143,22 +165,22 @@ namespace nesdroid {
                 address = nextPC;
                 break;
             case RELATIVE:
-                dbyte offset = memory->readDoubleByte(nextPC);
-                address = (addr_t) (memory->PC + 2 + offset + (offset < 0x80 ? 0 : -0x100));
+                dbyte offset = memory.readDoubleByte(nextPC);
+                address = (addr_t) (PC + 2 + offset + (offset < 0x80 ? 0 : -0x100));
                 break;
             case INDEXED_INDIRECT:
-                address = memory->readDoubleByteBugly(memory->readDoubleByte(nextPC) + memory->X);
+                address = memory.readDoubleByteBugly(memory.readDoubleByte(nextPC) + X);
                 break;
             case INDIRECT_INDEXED:
-                address = memory->readDoubleByteBugly(memory->readDoubleByte(nextPC)) + memory->Y;
-                pageCrossed = pagesDiffer(address-memory->Y,address);
+                address = memory.readDoubleByteBugly(memory.readDoubleByte(nextPC)) + Y;
+                pageCrossed = pagesDiffer(address - Y, address);
                 break;
             default:
                 LOG("Error AddressingMode %d", addressingMode);
         }
 
 
-        this->memory->PC += instructionLength;
+        PC += instructionLength;
         this->cycles += cycle;
 
         if (pageCrossed) {
@@ -166,7 +188,8 @@ namespace nesdroid {
         }
 
         if (pOperation != nullptr) {
-            this->(*pOperation)({address,memory->PC,addressingMode});
+            const Context context = {address, PC, addressingMode};
+            this->(*pOperation)(context);
         }
 
         return this->cycles - cycle;
@@ -174,34 +197,73 @@ namespace nesdroid {
 
     // ADC - Add with Carry
     void Cpu::ADC(const Context &context) {
-        auto acc = memory->ACC;
-        auto addition = memory->read(context.address);
-        auto carry = memory->CF;
+        auto acc = ACC;
+        auto addition = memory.read(context.address);
+        auto carry = CF;
 
-        uint16_t sum = acc + addition + carry;
-        memory->ACC = (byte) sum;
-        memory->CF = sum > 0xff;
-        memory->VF = !((acc ^ addition) & 0x80) && ((acc ^ memory->ACC) & 0x80);
+        uint16_t sum;
+        if (DF && supportBCD) {
+            sum = bcd(acc) + bcd(addition) + carry;
+            CF = sum > 99;
+        } else {
+            sum = acc + addition + carry;
+            CF = sum > 0xff;
+        }
+        ACC = (byte) sum;
+        NF = (ACC & 0x80) == 1;
+        ZF = ACC == 0;
+        setZN(ACC);
+
+        VF = !((acc ^ addition) & 0x80) && ((acc ^ ACC) & 0x80);
     }
 
+    // AND - Bitwise-AND A with Memory
     void Cpu::AND(const Context &context) {
-
+        ACC = ACC & memory.read(context.address);
+        setZN(ACC);
     }
 
+    /* ASL - Arithmetic Shift Left
+    "In my experience, this is NOT an "arithmetic" shift.
+     An Arithmetic shift normally preserves the Most Significant Bit (MSb) or "Sign bit" of the source value.
+     ASL does NOT do this on the 6502."
+    The 6502 places a copy of the sign from the result of a Logical Shift Left into the sigN Flag (P.N)
+    This instruction would be better named as SLS (logical Shift Left and update Sign)*/
     void Cpu::ASL(const Context &context) {
-
+        if (context.mode == ACCUMULATOR) {
+            CF = ACC >> 7;
+            ACC <<= 1;
+            setZN(ACC);
+        } else {
+            auto value = memory.read(context.address);
+            CF = value >> 7;
+            value <<= 1;
+            memory.write(context.address, value);
+            setZN(value);
+        }
     }
 
+    // BCC - Branch if CarryFlag is CLEAR
     void Cpu::BCC(const Context &context) {
-
+        if (!CF) {
+            pcGoto(context);
+        }
     }
 
+
+
+    // BCS - Branch if Carry Set
     void Cpu::BCS(const Context &context) {
-
+        if (CF) {
+            pcGoto(context);
+        }
     }
 
+    // BEQ - Branch if Equal
     void Cpu::BEQ(const Context &context) {
-
+        if (ZF) {
+            pcGoto(context);
+        }
     }
 
     void Cpu::BIT(const Context &context) {

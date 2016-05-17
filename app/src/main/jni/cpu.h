@@ -15,9 +15,11 @@ namespace nesdroid {
 
     static const byte INIT_SP = 0xFF;
     static const addr_t STACK_BASE = 0x100;
-
-
     typedef void (Cpu::*opt)(const Context &context);
+
+    static inline byte bcd(byte value){
+        return (byte) ((value >> 4) * 10 + (value & 0xf));
+    }
 
 
     enum AddressingMode {
@@ -55,7 +57,10 @@ namespace nesdroid {
     class Cpu {
 
     private:
-        CpuMemory *memory;
+
+        bool supportBCD = false;
+
+        CpuMemory memory;
 
         uint64_t cycles;
         Interrupt interrupt = NONE;
@@ -90,7 +95,6 @@ namespace nesdroid {
 
 
         Cpu() {
-            memory = new CpuMemory();
         }
 
 
@@ -112,6 +116,10 @@ namespace nesdroid {
         void onResetInterrupt();
         void onMaskableInterrupt();
         void onNonMaskableInterrupt();
+
+
+        void setZN(const byte &value);
+        void compare(byte a, byte b);
 
 //////////////////Instructions////////////////////////////
         //ADC	add with carry
@@ -281,6 +289,9 @@ namespace nesdroid {
 
         //TYA	transfer Y to accumulator
         void TYA(const Context&);
+
+
+        void pcGoto(const Context &context);
     };
 
 
