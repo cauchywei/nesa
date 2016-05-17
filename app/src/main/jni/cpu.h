@@ -105,9 +105,9 @@ namespace nesdroid {
 
         void pushDoubleByte(dbyte value);
 
-        byte pop();
+        byte pull();
 
-        dbyte popDoubleByte();
+        dbyte pullDoubleByte();
 
         byte getProcessorStatus();
 
