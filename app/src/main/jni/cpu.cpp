@@ -12,20 +12,60 @@ namespace nesdroid {
     }
 
     void Cpu::onResetInterrupt() {
-        memory->onResetInterrupt();
+        PC = memory->readDoubleByte(0xFFFC);
+        //TODO
     }
 
     void Cpu::onMaskableInterrupt() {
-        memory->onMaskableInterrupt();
+        pushDoubleByte(PC);
+        push(getProcessorStatus());
+        PC = memory->readDoubleByte(0xFFFE);
+        IF = 1;
         cycles += 7;
     }
 
     void Cpu::onNonMaskableInterrupt() {
-        memory->onNonMaskableInterrupt();
+        pushDoubleByte(PC);
+        push(getProcessorStatus());
+        PC = memory->readDoubleByte(0xFFFA);
+        IF = 1;
         cycles += 7;
     }
 
 
+    byte Cpu::getProcessorStatus() {
+        return (byte) (CF << 7 || ZF << 6 || IF << 5 || DF << 4 || BF << 3 || VF << 1 || NF);
+    }
+
+    void Cpu::setProcessorStatus(byte flags) {
+        CF = flags >> 7;
+        ZF = flags >> 6;
+        IF = flags >> 5;
+        DF = flags >> 4;
+        BF = flags >> 4;
+        VF = flags >> 2;
+        NF = flags >> 1;
+    }
+
+
+    void Cpu::push(byte value) {
+        memory->write(SP-- | STACK_BASE, value);
+    }
+
+    void Cpu::pushDoubleByte(dbyte value) {
+        push((byte) (value >> 8));
+        push((byte) value);
+    }
+
+    byte Cpu::pop() {
+        return memory->read(++SP | STACK_BASE);
+    }
+
+    dbyte Cpu::popDoubleByte() {
+        byte low = pop();
+        byte high = pop();
+        return (high << 8) | low;
+    }
 
 
     uint64_t Cpu::excuse() {
@@ -132,9 +172,16 @@ namespace nesdroid {
         return this->cycles - cycle;
     }
 
-
+    // ADC - Add with Carry
     void Cpu::ADC(const Context &context) {
+        auto acc = memory->ACC;
+        auto addition = memory->read(context.address);
+        auto carry = memory->CF;
 
+        uint16_t sum = acc + addition + carry;
+        memory->ACC = (byte) sum;
+        memory->CF = sum > 0xff;
+        memory->VF = !((acc ^ addition) & 0x80) && ((acc ^ memory->ACC) & 0x80);
     }
 
     void Cpu::AND(const Context &context) {

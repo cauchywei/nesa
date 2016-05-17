@@ -9,8 +9,6 @@
 
 namespace nesdroid {
 
-    static const byte INIT_SP = 0xFF;
-    static const addr_t STACK_BASE = 0x100;
 
     class IMemory {
     public:
@@ -53,54 +51,15 @@ namespace nesdroid {
 
         virtual void writeDoubleByte(addr_t address, dbyte value) override;
 
-        void push(byte value);
 
-        void pushDoubleByte(dbyte value);
-
-        byte pop();
-
-        dbyte popDoubleByte();
-
-        byte getProcessorStatus();
-
-        void setProcessorStatus(byte flags);
 
     private:
         IMapper *mapper;
         byte *ram;
-        ///////////Registers///////////
-        byte ACC;
 
-        byte X;
-        byte Y;
-
-        //Stack Pointer, 8bit, it decrease when push
-        //Stack at memory locations $0100-$01FF
-        byte SP = INIT_SP;
-
-        //Program Counter, 16bit, point next instruction address
-        addr_t PC;
-
-        //Processor Status
-        // 7 6 5 4 3 2 1 0
-        // N V   B D I Z C
-        bit CF; //Carry Flag
-        bit ZF; //Zero Flag
-        bit IF; //Interrupt Disable
-        bit DF; //Decimal Mode
-        bit BF; //Break Command
-        //  --; //Empty
-        bit VF; //Overflow Flag
-        bit NF; //Negative Flag
     public:
 
         void reset();
-
-        void onResetInterrupt();
-
-        void onMaskableInterrupt();
-
-        void onNonMaskableInterrupt();
 
         dbyte readDoubleByteBugly(addr_t address);
     };

@@ -13,7 +13,8 @@
 namespace nesdroid {
 
 
-    static const uint16_t STACK_OFFSET = 0x0100;
+    static const byte INIT_SP = 0xFF;
+    static const addr_t STACK_BASE = 0x100;
 
 
     typedef void (Cpu::*opt)(const Context &context);
@@ -57,10 +58,34 @@ namespace nesdroid {
         CpuMemory *memory;
 
         uint64_t cycles;
-
-
         Interrupt interrupt = NONE;
         uint64_t stallCycle;
+
+        ///////////Registers///////////
+        byte ACC;
+
+        byte X;
+        byte Y;
+
+        //Stack Pointer, 8bit, it decrease when push
+        //Stack at memory locations $0100-$01FF
+        byte SP = INIT_SP;
+
+        //Program Counter, 16bit, point next instruction address
+        addr_t PC;
+
+        //Processor Status
+        // 7 6 5 4 3 2 1 0
+        // N V   B D I Z C
+        bit CF; //Carry Flag
+        bit ZF; //Zero Flag
+        bit IF; //Interrupt Disable
+        bit DF; //Decimal Mode
+        bit BF; //Break Command
+        //  --; //Empty
+        bit VF; //Overflow Flag
+        bit NF; //Negative Flag
+
     public:
 
 
@@ -72,6 +97,17 @@ namespace nesdroid {
         uint64_t excuse();
 
 
+        void push(byte value);
+
+        void pushDoubleByte(dbyte value);
+
+        byte pop();
+
+        dbyte popDoubleByte();
+
+        byte getProcessorStatus();
+
+        void setProcessorStatus(byte flags);
 
         void onResetInterrupt();
         void onMaskableInterrupt();
